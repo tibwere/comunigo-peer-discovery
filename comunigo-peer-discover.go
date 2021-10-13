@@ -26,7 +26,7 @@ func main() {
 	}
 
 	for _, container := range containers {
-		if strings.Contains(container.Image, "peer_ms") {
+		if strings.Contains(container.Image, "comunigo/peer") {
 			ports = append(ports, container.Ports[0].PublicPort)
 		}
 	}
