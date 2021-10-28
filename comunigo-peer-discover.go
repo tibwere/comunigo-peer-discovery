@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -10,9 +12,12 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func main() {
+var testFmtPtr = flag.Bool("t", false, "Comma separated available ports")
 
+func main() {
 	var ports []uint16
+
+	flag.Parse()
 
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -32,14 +37,33 @@ func main() {
 	}
 
 	if len(ports) == 0 {
-		fmt.Println("No peers found, bye bye :)")
+		if *testFmtPtr {
+			os.Exit(1)
+		} else {
+			fmt.Println("No peers found, bye bye :)")
+			os.Exit(1)
+		}
 	}
 
 	sort.Slice(ports, func(i, j int) bool {
 		return ports[i] < ports[j]
 	})
 
-	for i, port := range ports {
-		fmt.Printf("%v-th peer is available at http://localhost:%v/\n", i+1, port)
+	if *testFmtPtr {
+		output := ""
+		for i, port := range ports {
+			if i == len(ports)-1 {
+				output += fmt.Sprintf("%v", port)
+			} else {
+				output += fmt.Sprintf("%v,", port)
+			}
+		}
+		fmt.Println(output)
+	} else {
+		for i, port := range ports {
+			fmt.Printf("%v-th peer is available at http://localhost:%v/\n", i+1, port)
+		}
 	}
+
+	os.Exit(0)
 }
